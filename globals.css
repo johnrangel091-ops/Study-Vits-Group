@@ -1,0 +1,284 @@
+import { useState } from "react";
+import { FileText, Sparkles, Copy, Download, RotateCcw, ChevronDown, Wand2, BookOpen, AlignLeft } from "lucide-react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
+
+const templates = [
+  { id: "ensayo", label: "Ensayo argumentativo", icon: "✍️" },
+  { id: "informe", label: "Informe de laboratorio", icon: "🔬" },
+  { id: "resena", label: "Reseña literaria", icon: "📚" },
+  { id: "monografia", label: "Monografía", icon: "📄" },
+  { id: "exposicion", label: "Exposición oral", icon: "🎤" },
+  { id: "mapa", label: "Mapa conceptual", icon: "🗺️" },
+];
+
+const tones = ["Académico", "Formal", "Analítico", "Descriptivo", "Persuasivo"];
+const lengths = ["Corto (500 palabras)", "Medio (1.000 palabras)", "Largo (2.000 palabras)", "Muy largo (3.000+)"];
+const levels = ["Secundaria", "Pregrado", "Posgrado"];
+
+const sampleOutput = `# La Inteligencia Artificial en la Educación del Siglo XXI
+
+## Introducción
+
+La inteligencia artificial (IA) ha irrumpido en casi todos los sectores de la sociedad moderna, y la educación no es la excepción. Desde sistemas de tutoría personalizada hasta plataformas de evaluación adaptativa, las tecnologías basadas en IA están redefiniendo la manera en que los estudiantes aprenden y los docentes enseñan. Este ensayo analiza el impacto transformador de la IA en la educación, sus beneficios, sus limitaciones y los desafíos éticos que plantea.
+
+## Desarrollo
+
+### Personalización del Aprendizaje
+
+Uno de los aportes más significativos de la IA al ámbito educativo es la posibilidad de personalizar la experiencia de aprendizaje. Los algoritmos de aprendizaje adaptativo analizan el rendimiento de cada estudiante en tiempo real y ajustan el contenido, el ritmo y la dificultad de los materiales según sus necesidades individuales (Baker & Siemens, 2014).
+
+Plataformas como Duolingo, Khan Academy y Carnegie Learning han demostrado que este enfoque puede mejorar significativamente los resultados académicos. Un estudio realizado por la Universidad de Carnegie Mellon encontró que los estudiantes que utilizaron sistemas de tutoría inteligente aprendieron hasta dos veces más rápido que aquellos que recibieron instrucción tradicional.
+
+### Acceso democratizado al conocimiento
+
+La IA también tiene el potencial de democratizar el acceso a una educación de calidad. En países en desarrollo como Colombia, donde las brechas educativas entre zonas urbanas y rurales son pronunciadas, las herramientas de IA pueden ofrecer recursos pedagógicos de alta calidad a estudiantes que de otra manera no tendrían acceso a ellos.
+
+## Conclusión
+
+La inteligencia artificial representa una oportunidad sin precedentes para transformar la educación y hacerla más equitativa, eficiente y personalizada. Sin embargo, su implementación debe ser cuidadosa, ética y centrada en el bienestar del estudiante. Los educadores, las instituciones y los desarrolladores de tecnología tienen la responsabilidad compartida de garantizar que estas herramientas amplíen, en lugar de reemplazar, la experiencia humana del aprendizaje.
+
+---
+**Referencias:**
+- Baker, R., & Siemens, G. (2014). Educational data mining and learning analytics. *Cambridge Handbook of the Learning Sciences*.
+- Luckin, R. et al. (2016). Intelligence Unleashed: An argument for AI in Education. *Pearson Education*.`;
+
+export function WorkGenerator() {
+  const [topic, setTopic] = useState("");
+  const [template, setTemplate] = useState("ensayo");
+  const [tone, setTone] = useState("Académico");
+  const [length, setLength] = useState("Medio (1.000 palabras)");
+  const [level, setLevel] = useState("Pregrado");
+  const [loading, setLoading] = useState(false);
+  const [output, setOutput] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const generate = () => {
+    if (!topic.trim()) return;
+    setLoading(true);
+    setOutput("");
+    let i = 0;
+    const interval = setInterval(() => {
+      i += 40;
+      setOutput(sampleOutput.slice(0, i));
+      if (i >= sampleOutput.length) {
+        clearInterval(interval);
+        setLoading(false);
+        setOutput(sampleOutput);
+      }
+    }, 16);
+  };
+
+  const copy = () => {
+    navigator.clipboard.writeText(output);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-7">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
+            <FileText className="w-4.5 h-4.5 text-indigo-600" />
+          </div>
+          <h1 className="text-foreground" style={{ fontSize: '1.5rem', fontWeight: 700 }}>Generador de Trabajos</h1>
+        </div>
+        <p className="text-muted-foreground ml-12" style={{ fontSize: '0.9375rem' }}>
+          Crea trabajos académicos de calidad con IA en segundos
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Config panel */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Topic */}
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <Label className="text-foreground mb-2 block" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+              Tema del trabajo *
+            </Label>
+            <Textarea
+              placeholder="Ej: El impacto de la inteligencia artificial en la educación colombiana..."
+              className="resize-none"
+              rows={3}
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </div>
+
+          {/* Template */}
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <Label className="text-foreground mb-3 block" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+              Tipo de trabajo
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              {templates.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTemplate(t.id)}
+                  className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all ${
+                    template === t.id
+                      ? "border-primary bg-secondary text-primary"
+                      : "border-border bg-muted/30 text-foreground hover:border-primary/40"
+                  }`}
+                  style={{ fontSize: '0.8125rem' }}
+                >
+                  <span>{t.icon}</span>
+                  <span className="font-medium">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Options */}
+          <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
+            <div>
+              <Label className="text-foreground mb-2 block" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Tono</Label>
+              <div className="flex flex-wrap gap-2">
+                {tones.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTone(t)}
+                    className={`px-3 py-1.5 rounded-lg border transition-all ${
+                      tone === t ? "border-primary bg-secondary text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                    style={{ fontSize: '0.8125rem' }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-foreground mb-2 block" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Extensión</Label>
+              <div className="space-y-1.5">
+                {lengths.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLength(l)}
+                    className={`w-full text-left px-3 py-2 rounded-lg border transition-all ${
+                      length === l ? "border-primary bg-secondary text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                    style={{ fontSize: '0.8125rem' }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-foreground mb-2 block" style={{ fontSize: '0.9rem', fontWeight: 600 }}>Nivel educativo</Label>
+              <div className="flex gap-2">
+                {levels.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLevel(l)}
+                    className={`flex-1 py-2 rounded-lg border transition-all ${
+                      level === l ? "border-primary bg-secondary text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    }`}
+                    style={{ fontSize: '0.8125rem' }}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={generate}
+            disabled={!topic.trim() || loading}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            size="lg"
+          >
+            <Wand2 className="w-4 h-4" />
+            {loading ? "Generando con IA…" : "Generar trabajo"}
+          </Button>
+
+          <p className="text-center text-muted-foreground" style={{ fontSize: '0.75rem' }}>
+            Usas <strong>1</strong> de <strong>1</strong> trabajos gratuitos este mes.{" "}
+            <button className="text-primary hover:underline">Actualizar a Pro</button>
+          </p>
+        </div>
+
+        {/* Output */}
+        <div className="lg:col-span-3">
+          <div className="bg-card rounded-2xl border border-border h-full flex flex-col" style={{ minHeight: 600 }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <AlignLeft className="w-4 h-4 text-muted-foreground" />
+                <span className="text-foreground" style={{ fontWeight: 600, fontSize: '0.9375rem' }}>
+                  {output ? "Trabajo generado" : "Resultado"}
+                </span>
+                {output && (
+                  <Badge className="bg-accent/10 text-accent border-0">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    IA
+                  </Badge>
+                )}
+              </div>
+              {output && (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={copy} className="gap-1.5">
+                    <Copy className="w-3.5 h-3.5" />
+                    {copied ? "¡Copiado!" : "Copiar"}
+                  </Button>
+                  <Button size="sm" variant="outline" className="gap-1.5">
+                    <Download className="w-3.5 h-3.5" />
+                    Exportar
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setOutput("")} className="gap-1.5">
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Limpiar
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              {!output && !loading && (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-indigo-400" />
+                  </div>
+                  <p className="text-foreground mb-1" style={{ fontWeight: 500 }}>Tu trabajo aparecerá aquí</p>
+                  <p className="text-muted-foreground max-w-xs" style={{ fontSize: '0.875rem' }}>
+                    Ingresa el tema, configura las opciones y presiona "Generar trabajo"
+                  </p>
+                </div>
+              )}
+
+              {(output || loading) && (
+                <div className="prose max-w-none">
+                  <pre
+                    className="whitespace-pre-wrap text-foreground font-sans"
+                    style={{ fontSize: '0.9375rem', lineHeight: 1.75 }}
+                  >
+                    {output}
+                    {loading && <span className="inline-block w-0.5 h-4 bg-primary animate-pulse ml-0.5 align-middle" />}
+                  </pre>
+                </div>
+              )}
+            </div>
+
+            {output && (
+              <div className="px-5 py-3 border-t border-border flex items-center justify-between">
+                <span className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
+                  ~{Math.round(output.split(" ").length)} palabras
+                </span>
+                <div className="flex items-center gap-1">
+                  {["👍", "👎"].map((e) => (
+                    <button key={e} className="text-lg hover:scale-110 transition-transform">{e}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
