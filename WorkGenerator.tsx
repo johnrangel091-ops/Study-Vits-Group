@@ -105,6 +105,77 @@ const plans = [
   },
 ];
 
+import { aiService } from "./ai-provider";
+import { SYSTEM_PROMPTS } from "./prompts";
+
+export function WorkGenerator() {
+  const [loading, setLoading] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [type, setType] = useState("ensayo");
+  const [result, setResult] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    if (!topic) return;
+    setLoading(true);
+    try {
+      const response = await aiService.generateText(
+        `Genera un ${type} sobre el siguiente tema: ${topic}`,
+        SYSTEM_PROMPTS.WORK_GENERATOR
+      );
+      setResult(response.text);
+    } catch (error) {
+      console.error(error);
+      alert("Error al generar el trabajo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-2">Generador de Trabajos Académicos</h1>
+        <p className="text-muted-foreground">Crea contenido estructurado con IA real.</p>
+      </div>
+
+      <div className="bg-card border rounded-xl p-6 mb-8 space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Tema del trabajo</label>
+          <input 
+            type="text" 
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Ej: La importancia de la biodiversidad en Colombia"
+            className="w-full p-2 border rounded-md bg-background"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tipo de documento</label>
+          <select 
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full p-2 border rounded-md bg-background"
+          >
+            <option value="ensayo">Ensayo</option>
+            <option value="informe">Informe</option>
+            <option value="exposicion">Exposición</option>
+            <option value="resumen">Resumen</option>
+          </select>
+        </div>
+        <Button onClick={handleGenerate} disabled={!topic || loading} className="w-full">
+          {loading ? "Generando..." : "Generar Trabajo Real"}
+        </Button>
+      </div>
+
+      {result && (
+        <div className="bg-card border rounded-xl p-6 prose dark:prose-invert max-w-none">
+          <div className="whitespace-pre-wrap">{result}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
 

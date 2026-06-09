@@ -57,6 +57,70 @@ const statusBadge: Record<string, string> = {
   inactive: "bg-muted text-muted-foreground",
 };
 
+import { aiService } from "./ai-provider";
+import { pdfService } from "./pdf-service";
+import { SYSTEM_PROMPTS } from "./prompts";
+
+export function PDFSummarizer() {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const handleProcess = async () => {
+    if (!file) return;
+    setLoading(true);
+    try {
+      const content = await pdfService.extractText(file);
+      const response = await aiService.generateText(
+        `Analiza este contenido de PDF:\n\n${content.text.substring(0, 10000)}`,
+        SYSTEM_PROMPTS.SUMMARIZER
+      );
+      setResult(JSON.parse(response.text));
+    } catch (error) {
+      console.error(error);
+      alert("Error al procesar el PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold mb-2">Resumidor de PDF con IA</h1>
+        <p className="text-muted-foreground">Sube tu archivo y obtén un análisis detallado.</p>
+      </div>
+
+      <div className="bg-card border rounded-xl p-6 mb-8">
+        <input 
+          type="file" 
+          accept=".pdf" 
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="mb-4 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+        />
+        <Button onClick={handleProcess} disabled={!file || loading} className="w-full">
+          {loading ? "Procesando..." : "Generar Resumen Real"}
+        </Button>
+      </div>
+
+      {result && (
+        <div className="space-y-6">
+          <div className="bg-card border rounded-xl p-6">
+            <h2 className="text-xl font-bold mb-4">Resumen</h2>
+            <p className="mb-4">{result.resumen_corto || result.short_summary}</p>
+            <h3 className="font-bold mb-2">Puntos Clave</h3>
+            <ul className="list-disc pl-5">
+              {(result.puntos_importantes || result.key_points || []).map((p: string, i: number) => (
+                <li key={i}>{p}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AdminPanel() {
   const [search, setSearch] = useState("");
 
